@@ -2,7 +2,6 @@ import React, { useContext, useState } from "react";
 import firebase from "firebase/app";
 import "firebase/auth";
 import firebaseConfig from "./firebase.config";
-// import { useForm } from "react-hook-form";
 import { UserContext } from "../../App";
 import { useHistory, useLocation } from "react-router";
 
@@ -67,7 +66,8 @@ const Login = () => {
           newUserInfo.error = "";
           newUserInfo.success = true;
           setLoggedInUser(newUserInfo);
-          history.push(from)
+          storeAuthToken();
+          history.push(from);
           console.log("user sign in", res.user);
         })
         .catch((error) => {
@@ -78,6 +78,7 @@ const Login = () => {
     }
     e.preventDefault();
   };
+
   const updateUserName = (name) => {
     const user = firebase.auth().currentUser;
     user
@@ -91,44 +92,79 @@ const Login = () => {
         console.log(error.message);
       });
   };
+
+  const handleGoogleSignIn = () => {
+    var provider = new firebase.auth.GoogleAuthProvider();
+    firebase
+      .auth()
+      .signInWithPopup(provider)
+      .then((result) => {
+        const { displayName, email } = result.user;
+        const signedInUser = { name: displayName, email };
+        setLoggedInUser(signedInUser);
+        storeAuthToken();
+        history.replace(from);
+      })
+      .catch(function (error) {
+        const errorMessage = error.message;
+        console.log(errorMessage);
+      });
+  };
+
+  const storeAuthToken = () => {
+    firebase
+      .auth()
+      .currentUser.getIdToken(/* forceRefresh */ true)
+      .then(function (idToken) {
+        sessionStorage.setItem("token", idToken);
+      })
+      .catch(function (error) {});
+  };
   return (
-    <form onSubmit={handleSubmit}>
-      <input
-        type="checkbox"
-        onChange={() => setNewUser(!newUser)}
-        name="newUser"
-        id=""
-      />
-      <label htmlFor="newUser">New User Sign Up</label>
-      <br />
-      {newUser && (
+    <div>
+      <form onSubmit={handleSubmit}>
         <input
-          type="text"
-          name="name"
+          type="checkbox"
+          onChange={() => setNewUser(!newUser)}
+          name="newUser"
+          id=""
+        />
+        <label htmlFor="newUser">New User Sign Up</label>
+        <br />
+        {newUser && (
+          <input
+            type="text"
+            name="name"
+            onBlur={handleBlur}
+            placeholder="Enter Your name"
+            required
+          />
+        )}
+        <br />
+        <input
+          type="email"
+          name="email"
           onBlur={handleBlur}
-          placeholder="Enter Your name"
+          placeholder="Enter Your Email"
           required
         />
-      )}
-      <br />
+        <br />
+        <input
+          type="password"
+          onBlur={handleBlur}
+          name="password"
+          placeholder="Enter Your Password"
+          required
+        />
+        <br />
+        <input type="submit" value={newUser ? "Sign Up" : "Sign In"} />
+      </form>
       <input
-        type="email"
-        name="email"
-        onBlur={handleBlur}
-        placeholder="Enter Your Email"
-        required
+        onClick={handleGoogleSignIn}
+        type="submit"
+        value="Google Sign In"
       />
-      <br />
-      <input
-        type="password"
-        onBlur={handleBlur}
-        name="password"
-        placeholder="Enter Your Password"
-        required
-      />
-      <br />
-      <input type="submit" value={newUser ? "Sign Up" : "Sign In"} />
-    </form>
+    </div>
   );
 };
 

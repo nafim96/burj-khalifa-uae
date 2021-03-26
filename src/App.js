@@ -10,15 +10,7 @@ import PrivateRoute from "./components/PrivateRoute/PrivateRoute";
 export const UserContext = createContext();
 
 function App() {
-  const [loggedInUser, setLoggedInUser] = useState({
-    isSigned: false,
-    name: "",
-    email: "",
-    password: "",
-    photo: "",
-    error: "",
-    success: false,
-  });
+  const [loggedInUser, setLoggedInUser] = useState({});
   return (
     <UserContext.Provider value={[loggedInUser, setLoggedInUser]}>
       <h1>{loggedInUser.name}</h1>
@@ -37,7 +29,7 @@ function App() {
           <PrivateRoute path="/book">
             <Book />
           </PrivateRoute>
-        
+
           <Route exact path="/">
             <Home />
           </Route>
